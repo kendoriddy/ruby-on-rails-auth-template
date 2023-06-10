@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Users::SessionsController < Devise::SessionsController
+  include RackSessionFix
   respond_to :json
   # before_action :configure_sign_in_params, only: [:create]
 
@@ -27,11 +28,13 @@ class Users::SessionsController < Devise::SessionsController
   # end
 
   private
-  def respond_with(resource, _opts = {})
+  def respond_with(_resource, _opts = {})
     render json: {
       status: {
         code: 200,
         message: "User logged in successfully.",
+        user: resource,
+        token: request.env['warden-jwt_auth.token'],
       },
       data: UserSerializer.new(resource).serializable_hash[:data][:attributes],
     }
@@ -41,12 +44,13 @@ class Users::SessionsController < Devise::SessionsController
     if current_user
       render json: {
         status: 200,
-        message: "User logged in successfully.",
+        message: "User logged out successfully.",
       }, status: :ok
     else
       render json: {
         status: 401,
-        message: "No user logged in.",
+        message: "Couldn't find an active user.",
       }, status: :unauthorized
+    end
   end
 end

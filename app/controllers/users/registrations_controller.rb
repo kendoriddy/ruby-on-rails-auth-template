@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Users::RegistrationsController < Devise::RegistrationsController
+  include RackSessionFix
   respond_to :json
   # before_action :configure_sign_up_params, only: [:create]
   # before_action :configure_account_update_params, only: [:update]
@@ -64,7 +65,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
   private
 
   def respond_with(resource, _opts = {})
-    if resource.persistent?
+    if resource.persisted?
       render json: {
         status: {code: 200, message: "User signed up successfully."},
         data: UserSerializer.new(resource).serializable_hash[:data][:attributes]
